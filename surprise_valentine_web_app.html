@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Special Story ❤️</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Prompt & Dancing Script -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                        },
+                        cream: '#FFFDF9',
+                    },
+                    fontFamily: {
+                        prompt: ['Prompt', 'sans-serif'],
+                        cursive: ['Dancing Script', 'cursive'],
+                    },
+                    keyframes: {
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '20%, 60%': { transform: 'translateX(-10px)' },
+                            '40%, 80%': { transform: 'translateX(10px)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-12px) rotate(4deg)' },
+                        }
+                    },
+                    animation: {
+                        shake: 'shake 0.5s ease-in-out',
+                        float: 'float 4s ease-in-out infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #ffe4e6 0%, #fff1f2 50%, #fed7aa 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px 0 rgba(244, 63, 94, 0.08);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .polaroid {
+            background: white;
+            padding: 12px 12px 20px 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .polaroid:hover {
+            transform: translateY(-6px) rotate(1deg) scale(1.02);
+            box-shadow: 0 20px 30px -10px rgba(244, 63, 94, 0.2);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ffe4e6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #fda4af;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-gray-700 relative selection:bg-rose-200 selection:text-rose-700">
+
+    <!-- Canvas for Floating Hearts -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Top Floating Action Controls (Music & Edit Mode Toggle) -->
+    <div class="fixed top-4 right-4 z-40 flex items-center gap-2">
+        <button id="editToggleBtn" onclick="toggleEditMode()" class="glass-card flex items-center gap-2 px-3.5 py-2 rounded-full shadow-md hover:bg-rose-50 transition text-rose-600 font-medium text-xs sm:text-sm border border-rose-200">
+            <i class="fa-solid fa-gear text-rose-500 animate-spin-slow"></i>
+            <span id="editToggleText" class="hidden sm:inline">โหมดแก้ไข</span>
+        </button>
+
+        <button id="musicToggleBtn" onclick="toggleAudio()" class="glass-card flex items-center gap-2 px-3.5 py-2 rounded-full shadow-md hover:bg-rose-50 transition text-rose-600 font-medium text-xs sm:text-sm border border-rose-200">
+            <i id="musicIcon" class="fa-solid fa-music"></i>
+            <span id="musicText" class="hidden sm:inline">เล่นเพลง</span>
+        </button>
+        <audio id="bgMusic" loop preload="auto">
+            <source id="audioSource" src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112199.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- Edit Mode Indicator Banner (Shown only when Edit Mode is active) -->
+    <div id="editBanner" class="hidden fixed top-0 left-0 right-0 z-30 bg-rose-500 text-white text-center py-2 text-xs font-semibold shadow-md flex items-center justify-center gap-2">
+        <span>⚙️ กำลังอยู่ใน "โหมดแก้ไขข้อมูล" (สามารถอัปโหลดรูปและปรับข้อความได้ตามต้องการ)</span>
+        <button onclick="saveAllData()" class="bg-white text-rose-600 px-3 py-0.5 rounded-full text-xs hover:bg-rose-50 font-bold ml-2 shadow-sm">💾 บันทึกทั้งหมด</button>
+    </div>
+
+    <!-- ==================== 1. LOCK SCREEN SECTION ==================== -->
+    <div id="lockScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gradient-to-br from-rose-100 via-pink-50 to-orange-100 transition-opacity duration-700">
+        <div id="lockCard" class="glass-card max-w-md w-full p-8 rounded-3xl text-center shadow-2xl border border-white relative overflow-hidden">
+            <div class="w-20 h-20 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 text-3xl shadow-inner animate-float">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+
+            <h2 id="displayLockTitle" class="text-2xl font-bold text-gray-800 mb-2">ยินดีต้อนรับครับคนเก่ง ❤️</h2>
+            <p id="displayLockSubtitle" class="text-sm text-gray-500 mb-6">กรุณาใส่รหัสผ่านเพื่อปลดล็อกพื้นที่ของเราสองคน</p>
+
+            <div class="space-y-4">
+                <input type="password" id="passcodeInput" maxlength="8" placeholder="••••" 
+                    class="w-full text-center text-3xl tracking-widest py-3 px-4 rounded-2xl bg-white/80 border-2 border-rose-200 focus:border-rose-400 focus:outline-none transition shadow-inner text-rose-600 font-bold placeholder-gray-300"
+                    onkeyup="if(event.key === 'Enter') checkPasscode()">
+
+                <div id="errorMessage" class="text-xs text-rose-500 font-medium h-5 opacity-0 transition-opacity flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i> รหัสผ่านไม่ถูกต้อง ลองใหม่อีกครั้งนะ!
+                </div>
+
+                <button onclick="checkPasscode()" class="w-full py-3.5 bg-gradient-to-r from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600 text-white font-semibold rounded-2xl shadow-lg shadow-rose-300/50 hover:shadow-xl transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <span>ปลดล็อกกล่องความทรงจำ</span>
+                    <i class="fa-solid fa-key text-xs"></i>
+                </button>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-rose-100/60 text-xs text-gray-400 flex flex-col items-center gap-1">
+                <span id="displayLockHint" class="flex items-center gap-1"><i class="fa-regular fa-lightbulb text-amber-400"></i> คำใบ้: วันครบรอบของเรา (DDMM)</span>
+                <span class="text-[10px] text-gray-400/80">( ลองกดรหัสเริ่มต้น: <button onclick="setPasscodeHint(appData.passcode)" class="underline text-rose-400 hover:text-rose-500 font-bold" id="defaultPasscodeDisplay">1234</button> )</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN APP CONTENT ==================== -->
+    <div id="mainContent" class="hidden min-h-screen pb-20 opacity-0 transition-opacity duration-1000 pt-6">
+
+        <!-- Navigation Bar -->
+        <nav class="glass-nav sticky top-8 z-20 px-4 py-3 shadow-sm rounded-full max-w-4xl mx-auto my-2 border border-white/80">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 pl-2">
+                    <span class="text-xl animate-pulse">💖</span>
+                    <span id="displayNavBrand" class="font-bold text-gray-800 text-base sm:text-lg font-cursive">Our Sweet Story</span>
+                </div>
+                <div class="flex gap-1 sm:gap-2 text-xs sm:text-sm font-medium">
+                    <a href="#counterSection" class="px-3 py-1.5 rounded-full hover:bg-rose-100/60 text-gray-600 hover:text-rose-600 transition">นับเวลา</a>
+                    <a href="#gallerySection" class="px-3 py-1.5 rounded-full hover:bg-rose-100/60 text-gray-600 hover:text-rose-600 transition">ความทรงจำ</a>
+                    <a href="#couponsSection" class="px-3 py-1.5 rounded-full hover:bg-rose-100/60 text-gray-600 hover:text-rose-600 transition">คูปอง</a>
+                    <a href="#letterSection" class="px-3 py-1.5 rounded-full hover:bg-rose-100/60 text-gray-600 hover:text-rose-600 transition">จดหมาย</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-4xl mx-auto px-4 pt-6 space-y-10">
+
+            <!-- Hero Banner Greeting -->
+            <div class="text-center space-y-4 py-6 relative">
+                <span class="inline-block px-4 py-1.5 bg-rose-100 text-rose-600 rounded-full text-xs font-semibold tracking-wider uppercase shadow-sm">
+                    ✨ Happy Anniversary ✨
+                </span>
+
+                <!-- Cover / Couple Photo Header -->
+                <div class="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto rounded-full overflow-hidden border-4 border-white shadow-xl group my-4">
+                    <img id="displayHeroImage" src="" alt="Couple Photo" class="w-full h-full object-cover">
+                    <!-- Edit Overlay Button -->
+                    <label class="edit-mode-only hidden absolute inset-0 bg-black/40 cursor-pointer flex-col items-center justify-center text-white text-xs font-medium transition hover:bg-black/60">
+                        <i class="fa-solid fa-camera text-xl mb-1"></i>
+                        <span>เปลี่ยนรูปโปรไฟล์</span>
+                        <input type="file" accept="image/*" class="hidden" onchange="handleHeroImageUpload(event)">
+                    </label>
+                </div>
+
+                <h1 id="displayHeroTitle" class="text-3xl sm:text-5xl font-extrabold text-gray-800 tracking-tight leading-tight">
+                    ขอบคุณที่เข้ามาเป็น <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">ความสุข</span> ของกันและกันนะ
+                </h1>
+                <p id="displayHeroSubtitle" class="text-gray-500 text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
+                    ทุกๆ วันที่ได้อยู่ด้วยกัน คือช่วงเวลาที่มีค่าที่สุด รวบรวมทุกความทรงจำรอยยิ้มไว้ตรงนี้เพื่อเธอคนเดียวเลยนะ ❤️
+                </p>
+            </div>
+
+            <!-- EDIT PANEL: Basic Information & Passcode (Visible in Edit Mode) -->
+            <div class="edit-mode-only hidden glass-card p-6 rounded-3xl border-2 border-rose-300 bg-rose-50/50 space-y-4">
+                <h3 class="font-bold text-rose-700 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-sliders"></i> ตั้งค่าข้อความหลัก & รหัสผ่านหน้าล็อก
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">หัวข้อใหญ่ (Hero Title)</label>
+                        <input type="text" id="editHeroTitle" oninput="appData.heroTitle=this.value; renderAll();" class="w-full p-2 rounded-xl border border-rose-200">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">คำบรรยายสั้น (Hero Subtitle)</label>
+                        <input type="text" id="editHeroSubtitle" oninput="appData.heroSubtitle=this.value; renderAll();" class="w-full p-2 rounded-xl border border-rose-200">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">รหัสผ่านปลดล็อกหน้าเว็บ (Passcode)</label>
+                        <input type="text" id="editPasscode" oninput="appData.passcode=this.value; renderAll();" class="w-full p-2 rounded-xl border border-rose-200 font-bold text-rose-600">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">อัปโหลดเพลงประกอบ MP3 ของเรา</label>
+                        <input type="file" accept="audio/*" onchange="handleAudioFileUpload(event)" class="w-full p-1 bg-white rounded-xl border border-rose-200 text-xs">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== 2. LOVE COUNTER ==================== -->
+            <section id="counterSection" class="glass-card p-6 sm:p-8 rounded-3xl relative overflow-hidden shadow-xl border border-white">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 border-b border-rose-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fa-solid fa-hourglass-half text-rose-500"></i>
+                            เรารักกันมานานแค่ไหนแล้วนะ?
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-1">เริ่มต้นบันทึกความทรงจำตั้งแต่วันที่ <span id="anniversaryDateDisplay" class="font-semibold text-rose-600">14 กุมภาพันธ์ 2023</span></p>
+                    </div>
+                    <button onclick="openDateModal()" class="text-xs bg-rose-100 hover:bg-rose-200 text-rose-600 px-3.5 py-2 rounded-xl font-medium transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-regular fa-calendar-days"></i> กำหนดวันเริ่มคบ
+                    </button>
+                </div>
+
+                <!-- Counter Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+                    <div class="bg-white/80 p-4 rounded-2xl shadow-sm border border-rose-100">
+                        <span id="daysCount" class="text-3xl sm:text-4xl font-extrabold text-rose-500 block">000</span>
+                        <span class="text-xs text-gray-500 font-medium mt-1 block">วัน</span>
+                    </div>
+                    <div class="bg-white/80 p-4 rounded-2xl shadow-sm border border-rose-100">
+                        <span id="hoursCount" class="text-3xl sm:text-4xl font-extrabold text-rose-500 block">00</span>
+                        <span class="text-xs text-gray-500 font-medium mt-1 block">ชั่วโมง</span>
+                    </div>
+                    <div class="bg-white/80 p-4 rounded-2xl shadow-sm border border-rose-100">
+                        <span id="minutesCount" class="text-3xl sm:text-4xl font-extrabold text-rose-500 block">00</span>
+                        <span class="text-xs text-gray-500 font-medium mt-1 block">นาที</span>
+                    </div>
+                    <div class="bg-white/80 p-4 rounded-2xl shadow-sm border border-rose-100">
+                        <span id="secondsCount" class="text-3xl sm:text-4xl font-extrabold text-rose-500 block animate-pulse">00</span>
+                        <span class="text-xs text-gray-500 font-medium mt-1 block">วินาที</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <p class="text-xs sm:text-sm text-rose-500 font-medium bg-rose-50/80 py-2.5 px-4 rounded-2xl inline-block border border-rose-100">
+                        💞 และจะยังคงนับเพิ่มขึ้นเรื่อยๆ แบบนี้ตลอดไปเลยครับ 💞
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==================== 3. PHOTO GALLERY ==================== -->
+            <section id="gallerySection" class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fa-solid fa-images text-rose-500"></i>
+                            คลังความทรงจำของเรา
+                        </h2>
+                        <p class="text-xs text-gray-500">คลิกที่รูปภาพโพลารอยด์เพื่ออ่านโน้ตความรู้สึก</p>
+                    </div>
+
+                    <!-- Add New Memory Card Button (Visible in Edit Mode) -->
+                    <button onclick="addNewMemoryCard()" class="edit-mode-only hidden bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-2 rounded-xl font-semibold transition shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> เพิ่มการ์ดรูปใหม่
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="galleryContainer">
+                    <!-- Cards populated by JS -->
+                </div>
+            </section>
+
+            <!-- ==================== 4. COUPONS BOOK ==================== -->
+            <section id="couponsSection" class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fa-solid fa-ticket text-rose-500"></i>
+                            สมุดคูปองคู่รักดิจิทัล 🎟️
+                        </h2>
+                        <p class="text-xs text-gray-500">กดใช้สิทธิ์คูปองได้ตลอดเวลา มีผลบังคับใช้ทันทีไม่มีหมดอายุ!</p>
+                    </div>
+
+                    <!-- Add New Coupon Button (Visible in Edit Mode) -->
+                    <button onclick="addNewCoupon()" class="edit-mode-only hidden bg-rose-500 hover:bg-rose-600 text-white text-xs px-3.5 py-2 rounded-xl font-semibold transition shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> เพิ่มคูปองใหม่
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="couponsContainer">
+                    <!-- Coupons populated by JS -->
+                </div>
+            </section>
+
+            <!-- ==================== 5. LOVE LETTER ==================== -->
+            <section id="letterSection" class="glass-card p-6 sm:p-10 rounded-3xl shadow-xl text-center relative overflow-hidden border border-white">
+                <div class="max-w-xl mx-auto space-y-6">
+                    <div class="inline-block p-3.5 bg-rose-100 text-rose-500 rounded-full text-2xl shadow-inner">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold text-gray-800">จดหมายรักฉบับพิเศษ 💌</h2>
+                    <p class="text-xs text-gray-500">มีความในใจบางอย่างที่อยากบอก กดเปิดอ่านซองจดหมายด้านล่างนี้ได้เลยนะ</p>
+
+                    <div class="pt-2">
+                        <button onclick="openLetterModal()" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-300 bg-gradient-to-r from-rose-400 via-pink-500 to-rose-500 rounded-full shadow-lg shadow-rose-300 hover:shadow-rose-400/50 hover:scale-105 active:scale-95">
+                            <span class="flex items-center gap-2 text-base">
+                                <i class="fa-solid fa-heart animate-bounce"></i>
+                                เปิดอ่านจดหมายรัก
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Global Action Bar in Edit Mode -->
+            <div class="edit-mode-only hidden glass-card p-4 rounded-2xl border-2 border-rose-400 text-center space-y-3 bg-white/90">
+                <p class="text-xs text-gray-600 font-medium">⚙️ จัดการข้อมูลการแก้ไขทั้งหมดในหน้านี้</p>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="saveAllData()" class="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลลงเครื่อง (Save)
+                    </button>
+                    <button onclick="resetToDefaultData()" class="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl text-xs transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left"></i> รีเซ็ตเป็นค่าเริ่มต้น
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center py-8 text-xs text-gray-400 space-y-1">
+                <p>Made with ❤️ specially for you</p>
+                <p>© Our Love Story — Always & Forever</p>
+            </footer>
+
+        </div>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Photo Memory Modal -->
+    <div id="memoryModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-card max-w-lg w-full rounded-3xl p-6 relative bg-white/95 shadow-2xl">
+            <button onclick="closeMemoryModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="space-y-4">
+                <img id="modalImage" src="" alt="Memory" class="w-full h-64 object-cover rounded-2xl shadow-md">
+                <div>
+                    <span id="modalDate" class="text-xs font-semibold text-rose-500 bg-rose-50 px-3 py-1 rounded-full border border-rose-100 inline-block mb-2"></span>
+                    <h3 id="modalTitle" class="text-xl font-bold text-gray-800"></h3>
+                    <p id="modalDescription" class="text-sm text-gray-600 mt-2 leading-relaxed"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Memory Item Modal -->
+    <div id="editMemoryModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full rounded-3xl p-6 bg-white/95 shadow-2xl space-y-4">
+            <h3 class="font-bold text-gray-800 text-base">แก้ไขความทรงจำ 📸</h3>
+            
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">หัวข้อรูปภาพ</label>
+                    <input type="text" id="editMemTitle" class="w-full p-2.5 rounded-xl border border-rose-200">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">วันที่ / ช่วงเวลา</label>
+                    <input type="text" id="editMemDate" class="w-full p-2.5 rounded-xl border border-rose-200">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">อัปโหลดรูปภาพใหม่จากเครื่อง</label>
+                    <input type="file" accept="image/*" onchange="handleMemoryImageUpload(event)" class="w-full p-1 bg-white rounded-xl border border-rose-200">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">หรือใส่ Link รูปภาพ (URL)</label>
+                    <input type="text" id="editMemImage" class="w-full p-2.5 rounded-xl border border-rose-200">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">ข้อความเล่าความทรงจำ</label>
+                    <textarea id="editMemDesc" rows="3" class="w-full p-2.5 rounded-xl border border-rose-200"></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeEditMemoryModal()" class="w-1/2 py-2.5 bg-gray-100 text-gray-600 text-xs rounded-xl font-medium">ยกเลิก</button>
+                <button onclick="saveMemoryCardEdit()" class="w-1/2 py-2.5 bg-rose-500 text-white text-xs rounded-xl font-medium shadow-md">บันทึกรูปนี้</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Love Letter Modal -->
+    <div id="letterModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-card max-w-xl w-full rounded-3xl p-6 sm:p-8 relative bg-cream/95 shadow-2xl border-2 border-rose-200 my-8 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeLetterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="space-y-6 text-gray-700">
+                <div class="text-center border-b border-rose-200/60 pb-4">
+                    <span class="font-cursive text-3xl text-rose-500 block">To My Sweetheart</span>
+                    <p class="text-xs text-gray-400 mt-1">จดหมายฉบับพิเศษถึงคนสำคัญที่สุด</p>
+                </div>
+
+                <!-- Display Mode -->
+                <div id="letterDisplayContent" class="space-y-4 text-sm sm:text-base leading-relaxed font-light text-gray-700 whitespace-pre-line">
+                    <!-- Letter content inserted by JS -->
+                </div>
+
+                <!-- Edit Mode Inside Letter -->
+                <div id="letterEditContent" class="hidden space-y-3">
+                    <label class="block text-xs font-semibold text-rose-600">แก้ไขข้อความในจดหมายรัก:</label>
+                    <textarea id="editLetterText" rows="8" class="w-full p-3 text-sm rounded-2xl border border-rose-300 focus:outline-none focus:border-rose-500 bg-white/80"></textarea>
+                    <button onclick="saveLetterEdit()" class="w-full py-2 bg-rose-500 text-white text-xs rounded-xl font-semibold shadow">บันทึกข้อความจดหมาย</button>
+                </div>
+
+                <div class="text-right pt-4 border-t border-rose-200/60 font-cursive text-2xl text-rose-500">
+                    Forever Yours 💕
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Start Date Modal -->
+    <div id="dateModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-card max-w-xs w-full rounded-3xl p-6 bg-white/95 shadow-xl text-center space-y-4">
+            <h3 class="font-bold text-gray-800 text-sm">เลือกวันเริ่มต้นความรัก</h3>
+            <input type="date" id="newAnniversaryDate" class="w-full p-2.5 rounded-xl border border-rose-200 text-xs focus:outline-none focus:border-rose-400">
+            <div class="flex gap-2">
+                <button onclick="closeDateModal()" class="w-1/2 py-2 bg-gray-100 text-gray-600 text-xs rounded-xl font-medium">ยกเลิก</button>
+                <button onclick="saveAnniversaryDate()" class="w-1/2 py-2 bg-rose-500 text-white text-xs rounded-xl font-medium shadow-md">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal for Deletion -->
+    <div id="confirmDeleteModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-card max-w-xs w-full rounded-3xl p-6 bg-white/95 shadow-2xl text-center space-y-4 border border-rose-100">
+            <div class="w-12 h-12 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-gray-800 text-base">ยืนยันการลบ?</h3>
+                <p id="confirmDeleteText" class="text-xs text-gray-500 mt-1">คุณแน่ใจใช่ไหมว่าต้องการลบรายการนี้?</p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeConfirmModal()" class="w-1/2 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-xl font-semibold transition">ยกเลิก</button>
+                <button id="confirmExecuteBtn" class="w-1/2 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs rounded-xl font-semibold shadow-md transition">ลบทันที</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 bg-gray-800/90 text-white px-5 py-2.5 rounded-full text-xs font-medium shadow-lg opacity-0 transition-opacity pointer-events-none flex items-center gap-2">
+        <i class="fa-solid fa-check text-green-400"></i>
+        <span id="toastMessage">บันทึกเรียบร้อยแล้ว</span>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // Initial Default Data
+        const defaultData = {
+            passcode: "1234",
+            anniversaryDate: "2023-02-14",
+            heroTitle: "ขอบคุณที่เข้ามาเป็น ความสุข ของกันและกันนะ",
+            heroSubtitle: "ทุกๆ วันที่ได้อยู่ด้วยกัน คือช่วงเวลาที่มีค่าที่สุด รวบรวมทุกความทรงจำรอยยิ้มไว้ตรงนี้เพื่อเธอคนเดียวเลยนะ ❤️",
+            heroImage: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80",
+            bgMusicUrl: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112199.mp3",
+            letterText: `ขอบคุณสำหรับทุกๆ รอยยิ้ม ความสุข และความอบอุ่นที่มีให้กันเสมอมานะ ตั้งแต่วันแรกที่ได้รู้จักกันจนถึงวันนี้ เธอทำให้โลกของฉันสดใสขึ้นเยอะมากๆ เลย
+
+ไม่ว่าวันไหนจะเจอเรื่องเหนื่อยหรือยากแค่ไหน พอได้หันมาเจอเธอ ได้ยินเสียงเธอ หรือได้กอดเธอ ก็ทำให้ทุกอย่างเบาลงทันทีเลย ขอบคุณที่คอยเป็นกำลังใจและเคียงข้างกันตลอดมานะ
+
+รักเธอนะครับ และจะรักเพิ่มขึ้นในทุกๆ วันเลย ❤️`,
+            memories: [
+                {
+                    id: 1,
+                    title: 'เดตแรกของเรา ❤️',
+                    date: '14 กุมภาพันธ์ 2023',
+                    image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80',
+                    description: 'จำได้ไหมวันนั้นที่ไปคาเฟ่ด้วยกันครั้งแรก เขินมากจนไม่กล้าสบตากันตรงๆ เลย แต่เป็นวันที่ตื่นเต้นและมีความสุขที่สุดเลย'
+                },
+                {
+                    id: 2,
+                    title: 'ทริปเที่ยวทะเลด้วยกัน 🌊',
+                    date: '10 พฤษภาคม 2023',
+                    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80',
+                    description: 'นั่งดูพระอาทิตย์ตกริมหาด ฟังเสียงคลื่นพร้อมกับจับมือเธอไว้ รู้นานแล้วว่าคนนี้แหละคือความสบายใจของเรา'
+                },
+                {
+                    id: 3,
+                    title: 'ฉลองวันเกิดเธอ 🎂',
+                    date: '22 สิงหาคม 2023',
+                    image: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=600&q=80',
+                    description: 'ขอให้เธอมีรอยยิ้มที่สดใสแบบนี้ในทุกๆ วันนะ จะคอยเป่าเค้กและฉลองวันเกิดข้างๆ เธอแบบนี้ไปทุกๆ ปีเลย'
+                }
+            ],
+            coupons: [
+                { id: 1, title: 'คูปองพาไปกินของอร่อย 🍣', desc: 'บุฟเฟต์หรือชาบูเจ้าโปรด เดี๋ยวเลี้ยงเอง!', redeemed: false },
+                { id: 2, title: 'คูปองนวดหลัง 20 นาที 💆‍♀️', desc: 'เมื่อยเมื่อไหร่ยื่นคูปองนี้ได้ทันที นวดฟินแน่นอน', redeemed: false },
+                { id: 3, title: 'คูปองง้อทันที ห้ามโกรธ! 🥺', desc: 'หากเค้าทำอะไรผิดพลาด ใช้คูปองนี้หายโกรธทันทีนะ', redeemed: false },
+                { id: 4, title: 'คูปองตามใจ 1 วันเต็ม 👑', desc: 'วันนี้อยากทำอะไร ไปไหน ตามใจเธอทุกอย่างเลย!', redeemed: false },
+            ]
+        };
+
+        // App State loaded from LocalStorage if exists
+        let appData = JSON.parse(localStorage.getItem('our_love_story_data')) || defaultData;
+        let isEditMode = false;
+        let activeEditingMemId = null;
+        let deleteCallback = null;
+
+        // Save Data to LocalStorage safely
+        function saveAllData() {
+            try {
+                localStorage.setItem('our_love_story_data', JSON.stringify(appData));
+                showToast('บันทึกข้อมูลเรียบร้อยแล้ว!');
+            } catch (e) {
+                alert('ไฟล์รูปภาพมีขนาดใหญ่เกินไป กรุณาลดขนาดหรือเลือกไฟล์อื่นครับ');
+            }
+        }
+
+        function resetToDefaultData() {
+            openConfirmModal('คุณต้องการรีเซ็ตข้อมูลและรูปภาพทั้งหมดกลับเป็นค่าเริ่มต้นหรือไม่?', () => {
+                localStorage.removeItem('our_love_story_data');
+                appData = JSON.parse(JSON.stringify(defaultData));
+                renderAll();
+                showToast('รีเซ็ตกลับเป็นค่าเริ่มต้นแล้ว');
+            });
+        }
+
+        // Toggle Edit Mode
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const banner = document.getElementById('editBanner');
+            const toggleText = document.getElementById('editToggleText');
+
+            if (isEditMode) {
+                banner.classList.remove('hidden');
+                toggleText.innerText = 'ออกจากโหมดแก้ไข';
+            } else {
+                banner.classList.add('hidden');
+                toggleText.innerText = 'โหมดแก้ไข';
+                saveAllData();
+            }
+            renderAll();
+        }
+
+        // Render All Views
+        function renderAll() {
+            // Edit Mode visibility classes sync
+            document.querySelectorAll('.edit-mode-only').forEach(el => {
+                if (isEditMode) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+
+            // Lock Screen Hint
+            document.getElementById('defaultPasscodeDisplay').innerText = appData.passcode;
+
+            // Hero Section
+            document.getElementById('displayHeroTitle').innerText = appData.heroTitle;
+            document.getElementById('displayHeroSubtitle').innerText = appData.heroSubtitle;
+            document.getElementById('displayHeroImage').src = appData.heroImage;
+
+            // Edit Inputs
+            document.getElementById('editHeroTitle').value = appData.heroTitle;
+            document.getElementById('editHeroSubtitle').value = appData.heroSubtitle;
+            document.getElementById('editPasscode').value = appData.passcode;
+
+            // Date Counter Display Date
+            const dateObj = new Date(appData.anniversaryDate + 'T00:00:00');
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('anniversaryDateDisplay').innerText = dateObj.toLocaleDateString('th-TH', options);
+
+            // Letter Content
+            document.getElementById('letterDisplayContent').innerText = appData.letterText;
+            document.getElementById('editLetterText').value = appData.letterText;
+
+            // Gallery and Coupons
+            renderGallery();
+            renderCoupons();
+        }
+
+        // Custom Delete Confirmation Modal Logic
+        function openConfirmModal(msg, onConfirm) {
+            document.getElementById('confirmDeleteText').innerText = msg;
+            deleteCallback = onConfirm;
+            document.getElementById('confirmDeleteModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmDeleteModal').classList.add('hidden');
+            deleteCallback = null;
+        }
+
+        document.getElementById('confirmExecuteBtn').addEventListener('click', () => {
+            if (typeof deleteCallback === 'function') {
+                deleteCallback();
+            }
+            closeConfirmModal();
+        });
+
+        // Image Downscaling Utility (Compress Images to Prevent LocalStorage Quota Exceeded)
+        function compressImage(file, maxWidth, maxHeight, quality, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    let canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    callback(dataUrl);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 1. Passcode Lock Check
+        function checkPasscode() {
+            const input = document.getElementById('passcodeInput').value;
+            const lockCard = document.getElementById('lockCard');
+            const errorMsg = document.getElementById('errorMessage');
+
+            if (input === appData.passcode) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+                document.getElementById('lockScreen').classList.add('opacity-0');
+                setTimeout(() => {
+                    document.getElementById('lockScreen').classList.add('hidden');
+                    const mainContent = document.getElementById('mainContent');
+                    mainContent.classList.remove('hidden');
+                    setTimeout(() => { mainContent.classList.remove('opacity-0'); }, 50);
+                }, 700);
+
+                playAudio();
+            } else {
+                lockCard.classList.add('animate-shake');
+                errorMsg.classList.remove('opacity-0');
+                setTimeout(() => { lockCard.classList.remove('animate-shake'); }, 500);
+            }
+        }
+
+        function setPasscodeHint(val) {
+            document.getElementById('passcodeInput').value = val;
+            checkPasscode();
+        }
+
+        // 2. Love Counter Engine
+        function updateCounter() {
+            const start = new Date(appData.anniversaryDate + 'T00:00:00');
+            const now = new Date();
+            const diff = now - start;
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            document.getElementById('daysCount').innerText = String(days > 0 ? days : 0).padStart(3, '0');
+            document.getElementById('hoursCount').innerText = String(hours > 0 ? hours : 0).padStart(2, '0');
+            document.getElementById('minutesCount').innerText = String(minutes > 0 ? minutes : 0).padStart(2, '0');
+            document.getElementById('secondsCount').innerText = String(seconds > 0 ? seconds : 0).padStart(2, '0');
+        }
+        setInterval(updateCounter, 1000);
+
+        function openDateModal() { document.getElementById('dateModal').classList.remove('hidden'); }
+        function closeDateModal() { document.getElementById('dateModal').classList.add('hidden'); }
+        function saveAnniversaryDate() {
+            const dateVal = document.getElementById('newAnniversaryDate').value;
+            if (dateVal) {
+                appData.anniversaryDate = dateVal;
+                saveAllData();
+                renderAll();
+                updateCounter();
+                closeDateModal();
+            }
+        }
+
+        // 3. Gallery Render & Actions
+        function renderGallery() {
+            const container = document.getElementById('galleryContainer');
+            if (appData.memories.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-8 text-gray-400 text-xs font-medium">ยังไม่มีการ์ดความทรงจำ กด "เพิ่มการ์ดรูปใหม่" เพื่อเริ่มต้นได้เลย</div>`;
+                return;
+            }
+
+            container.innerHTML = appData.memories.map(item => `
+                <div class="polaroid rounded-2xl relative group">
+                    <div class="overflow-hidden rounded-xl bg-gray-100 aspect-square mb-3 cursor-pointer" onclick="openMemoryModal(${item.id})">
+                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/600x600/ffe4e6/f43f5e?text=Memory+Photo'">
+                    </div>
+                    <span class="text-[10px] text-rose-500 font-semibold bg-rose-50 px-2.5 py-0.5 rounded-full inline-block mb-1">${item.date}</span>
+                    <h3 class="font-bold text-gray-800 text-sm truncate cursor-pointer" onclick="openMemoryModal(${item.id})">${item.title}</h3>
+                    
+                    ${isEditMode ? `
+                        <div class="mt-3 pt-2 border-t border-rose-100 flex justify-between items-center text-xs">
+                            <button type="button" onclick="openEditMemoryModal(${item.id})" class="text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+                            </button>
+                            <button type="button" onclick="confirmDeleteMemory(event, ${item.id})" class="text-rose-500 hover:text-rose-700 font-semibold flex items-center gap-1 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200">
+                                <i class="fa-solid fa-trash-can"></i> ลบรูปนี้
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function openMemoryModal(id) {
+            const item = appData.memories.find(m => m.id === id);
+            if (!item) return;
+            document.getElementById('modalImage').src = item.image;
+            document.getElementById('modalDate').innerText = item.date;
+            document.getElementById('modalTitle').innerText = item.title;
+            document.getElementById('modalDescription').innerText = item.description;
+            document.getElementById('memoryModal').classList.remove('hidden');
+        }
+        function closeMemoryModal() { document.getElementById('memoryModal').classList.add('hidden'); }
+
+        function openEditMemoryModal(id) {
+            activeEditingMemId = id;
+            const item = appData.memories.find(m => m.id === id);
+            if (!item) return;
+            document.getElementById('editMemTitle').value = item.title;
+            document.getElementById('editMemDate').value = item.date;
+            document.getElementById('editMemImage').value = item.image;
+            document.getElementById('editMemDesc').value = item.description;
+            document.getElementById('editMemoryModal').classList.remove('hidden');
+        }
+        function closeEditMemoryModal() { document.getElementById('editMemoryModal').classList.add('hidden'); }
+
+        function saveMemoryCardEdit() {
+            const item = appData.memories.find(m => m.id === activeEditingMemId);
+            if (item) {
+                item.title = document.getElementById('editMemTitle').value;
+                item.date = document.getElementById('editMemDate').value;
+                item.image = document.getElementById('editMemImage').value;
+                item.description = document.getElementById('editMemDesc').value;
+                saveAllData();
+                renderGallery();
+                closeEditMemoryModal();
+            }
+        }
+
+        function addNewMemoryCard() {
+            const newId = Date.now();
+            appData.memories.push({
+                id: newId,
+                title: 'ความทรงจำใหม่ ❤️',
+                date: 'วันนี้',
+                image: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=600&q=80',
+                description: 'เขียนเล่าความทรงจำตรงนี้ได้เลย...'
+            });
+            saveAllData();
+            renderGallery();
+            openEditMemoryModal(newId);
+        }
+
+        function confirmDeleteMemory(e, id) {
+            if (e) e.stopPropagation();
+            openConfirmModal('คุณต้องการลบการ์ดความทรงจำนี้ใช่หรือไม่?', () => {
+                appData.memories = appData.memories.filter(m => m.id !== id);
+                saveAllData();
+                renderGallery();
+                showToast('ลบการ์ดความทรงจำแล้ว');
+            });
+        }
+
+        function handleMemoryImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                compressImage(file, 800, 800, 0.75, (compressedUrl) => {
+                    document.getElementById('editMemImage').value = compressedUrl;
+                });
+            }
+        }
+
+        function handleHeroImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                compressImage(file, 600, 600, 0.8, (compressedUrl) => {
+                    appData.heroImage = compressedUrl;
+                    document.getElementById('displayHeroImage').src = compressedUrl;
+                    saveAllData();
+                });
+            }
+        }
+
+        // 4. Coupons Render & Actions
+        function renderCoupons() {
+            const container = document.getElementById('couponsContainer');
+            if (appData.coupons.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-8 text-gray-400 text-xs font-medium">ยังไม่มีคูปอง กด "เพิ่มคูปองใหม่" เพื่อสร้างเพิ่มได้เลย</div>`;
+                return;
+            }
+
+            container.innerHTML = appData.coupons.map(item => `
+                <div class="bg-white/80 border border-rose-100 p-5 rounded-2xl shadow-sm flex flex-col justify-between gap-3 transition hover:shadow-md">
+                    <div class="space-y-1">
+                        ${isEditMode ? `
+                            <input type="text" value="${item.title}" onchange="updateCouponText(${item.id}, 'title', this.value)" class="w-full text-sm font-bold border-b border-rose-200 bg-transparent mb-1 focus:outline-none focus:border-rose-400">
+                            <input type="text" value="${item.desc}" onchange="updateCouponText(${item.id}, 'desc', this.value)" class="w-full text-xs text-gray-500 border-b border-rose-200 bg-transparent focus:outline-none focus:border-rose-400">
+                        ` : `
+                            <h4 class="font-bold text-gray-800 text-sm">${item.title}</h4>
+                            <p class="text-xs text-gray-500">${item.desc}</p>
+                        `}
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-rose-50/60">
+                        <button id="couponBtn-${item.id}" onclick="redeemCoupon(${item.id})" 
+                            class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                                item.redeemed 
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                : 'bg-rose-500 hover:bg-rose-600 text-white shadow-md shadow-rose-200 active:scale-95'
+                            }">
+                            ${item.redeemed ? 'ใช้แล้ว ❤️' : 'ใช้คูปอง'}
+                        </button>
+                        ${isEditMode ? `
+                            <button type="button" onclick="confirmDeleteCoupon(event, ${item.id})" class="text-xs text-rose-500 hover:text-rose-700 font-semibold bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i> ลบคูปอง
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function redeemCoupon(id) {
+            const coupon = appData.coupons.find(c => c.id === id);
+            if (coupon && !coupon.redeemed) {
+                coupon.redeemed = true;
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                saveAllData();
+                renderCoupons();
+            }
+        }
+
+        function updateCouponText(id, field, value) {
+            const coupon = appData.coupons.find(c => c.id === id);
+            if (coupon) {
+                coupon[field] = value;
+                saveAllData();
+            }
+        }
+
+        function addNewCoupon() {
+            appData.coupons.push({
+                id: Date.now(),
+                title: 'คูปองใหม่ 🎁',
+                desc: 'ระบุสิทธิ์พิเศษได้เลย...',
+                redeemed: false
+            });
+            saveAllData();
+            renderCoupons();
+        }
+
+        function confirmDeleteCoupon(e, id) {
+            if (e) e.stopPropagation();
+            openConfirmModal('คุณต้องการลบคูปองนี้ใช่หรือไม่?', () => {
+                appData.coupons = appData.coupons.filter(c => c.id !== id);
+                saveAllData();
+                renderCoupons();
+                showToast('ลบคูปองเรียบร้อยแล้ว');
+            });
+        }
+
+        // 5. Letter Handlers
+        function openLetterModal() {
+            document.getElementById('letterModal').classList.remove('hidden');
+            const editBlock = document.getElementById('letterEditContent');
+            if (isEditMode) {
+                editBlock.classList.remove('hidden');
+            } else {
+                editBlock.classList.add('hidden');
+            }
+            confetti({ particleCount: 50, spread: 50, origin: { y: 0.5 } });
+        }
+        function closeLetterModal() { document.getElementById('letterModal').classList.add('hidden'); }
+        function saveLetterEdit() {
+            appData.letterText = document.getElementById('editLetterText').value;
+            saveAllData();
+            renderAll();
+            showToast('บันทึกข้อความจดหมายแล้ว');
+        }
+
+        // Audio System
+        const audio = document.getElementById('bgMusic');
+        const audioSource = document.getElementById('audioSource');
+        const musicIcon = document.getElementById('musicIcon');
+        const musicText = document.getElementById('musicText');
+        let isPlaying = false;
+
+        function playAudio() {
+            if (appData.bgMusicUrl) {
+                audioSource.src = appData.bgMusicUrl;
+                audio.load();
+            }
+            audio.play().then(() => {
+                isPlaying = true;
+                musicIcon.classList.add('animate-spin');
+                musicText.innerText = 'ปิดเสียงเพลง';
+            }).catch(() => {
+                isPlaying = false;
+                musicIcon.classList.remove('animate-spin');
+                musicText.innerText = 'เปิดเสียงเพลง';
+            });
+        }
+
+        function toggleAudio() {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                musicIcon.classList.remove('animate-spin');
+                musicText.innerText = 'เปิดเสียงเพลง';
+            } else {
+                playAudio();
+            }
+        }
+
+        function handleAudioFileUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    appData.bgMusicUrl = evt.target.result;
+                    playAudio();
+                    saveAllData();
+                    showToast('อัปโหลดไฟล์เพลงเรียบร้อยแล้ว');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => { toast.classList.add('opacity-0'); }, 2500);
+        }
+
+        // Floating Hearts Canvas Animation
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.size = Math.random() * 12 + 8;
+                this.speedY = Math.random() * 1.5 + 0.5;
+                this.speedX = Math.sin(Math.random() * Math.PI) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.3;
+                this.color = `hsla(${Math.random() * 20 + 340}, 80%, 75%, ${this.opacity})`;
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                if (this.y < -20) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                const topCurveHeight = this.size * 0.3;
+                ctx.moveTo(0, topCurveHeight);
+                ctx.bezierCurveTo(0, 0, -this.size / 2, 0, -this.size / 2, topCurveHeight);
+                ctx.bezierCurveTo(-this.size / 2, (this.size + topCurveHeight) / 2, 0, this.size, 0, this.size);
+                ctx.bezierCurveTo(0, this.size, this.size / 2, (this.size + topCurveHeight) / 2, this.size / 2, topCurveHeight);
+                ctx.bezierCurveTo(this.size / 2, 0, 0, 0, 0, topCurveHeight);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 25; i++) { particles.push(new Particle()); }
+        }
+        initParticles();
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Initial Boot
+        window.onload = function() {
+            renderAll();
+            updateCounter();
+        };
+    </script>
+</body>
+</html>
